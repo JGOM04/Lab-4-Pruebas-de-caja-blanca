@@ -1,0 +1,255 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.2, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/python/3.14.2/bin/python3
+cachedir: .pytest_cache
+rootdir: /workspaces/Lab-4-Pruebas-de-caja-blanca
+plugins: anyio-4.15.1, cov-7.1.0
+collecting ... collected 16 items
+
+test_process_grade.py::test_CS01_todas_las_sentencias FAILED             [  6%]
+test_process_grade.py::test_CD01_lista_vacia PASSED                      [ 12%]
+test_process_grade.py::test_CD02_grades_none PASSED                      [ 18%]
+test_process_grade.py::test_CD03_aprobado FAILED                         [ 25%]
+test_process_grade.py::test_CD04_recuperacion FAILED                     [ 31%]
+test_process_grade.py::test_CD05_reprobado FAILED                        [ 37%]
+test_process_grade.py::test_CC01_camino_sin_estudiantes PASSED           [ 43%]
+test_process_grade.py::test_CC02_camino_none PASSED                      [ 50%]
+test_process_grade.py::test_CC03_camino_aprobado FAILED                  [ 56%]
+test_process_grade.py::test_CC04_camino_recuperacion FAILED              [ 62%]
+test_process_grade.py::test_CC05_camino_reprobado FAILED                 [ 68%]
+test_process_grade.py::test_CC06_limite_promedio_70 FAILED               [ 75%]
+test_process_grade.py::test_CC07_limite_promedio_50 PASSED               [ 81%]
+test_process_grade.py::test_CC08_limite_promedio_49_99 PASSED            [ 87%]
+test_process_grade.py::test_CC09_lista_de_notas_vacia FAILED             [ 93%]
+test_process_grade.py::test_CC10_datos_del_main FAILED                   [100%]
+
+=================================== FAILURES ===================================
+________________________ test_CS01_todas_las_sentencias ________________________
+
+capsys = <_pytest.capture.CaptureFixture object at 0x7871ce618ec0>
+
+    def test_CS01_todas_las_sentencias(capsys):
+        students = [
+            {'name': 'Pedro', 'grades': None},          # sentencia print + continue
+            {'name': 'Ana',   'grades': [80, 90, 85]},  # passed.append   (prom 85)
+            {'name': 'Luis',  'grades': [60, 60, 60]},  # print recovery  (prom 60)
+            {'name': 'Marta', 'grades': [40, 45, 50]},  # failed.append   (prom 45)
+        ]
+        result = process_grades(students)
+        salida = capsys.readouterr().out
+    
+        assert "Student Pedro has no grades" in salida
+        assert "Luis is in recovery" in salida
+        assert result['passed'] == ['Ana']
+        assert result['failed'] == ['Marta']
+        # RF5: (85 + 60 + 45) / 3 = 63.33
+>       assert result['overall_average'] == 63.33
+E       assert 0 == 63.33
+
+test_process_grade.py:27: AssertionError
+______________________________ test_CD03_aprobado ______________________________
+
+    def test_CD03_aprobado():
+        # D2 = F, D3 = V, D5 = V
+        result = process_grades([{'name': 'Ana', 'grades': [90, 90, 90]}])
+        assert result['passed'] == ['Ana']
+        assert result['failed'] == []
+>       assert result['overall_average'] == 90      # RF5
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert 0 == 90
+
+test_process_grade.py:55: AssertionError
+____________________________ test_CD04_recuperacion ____________________________
+
+capsys = <_pytest.capture.CaptureFixture object at 0x7871ce4591d0>
+
+    def test_CD04_recuperacion(capsys):
+        # D3 = F, D4 = V, D5 = V
+        result = process_grades([{'name': 'Luis', 'grades': [60, 60, 60]}])
+        assert "Luis is in recovery" in capsys.readouterr().out
+        assert result['passed'] == [] and result['failed'] == []
+>       assert result['overall_average'] == 60      # RF5
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert 0 == 60
+
+test_process_grade.py:63: AssertionError
+_____________________________ test_CD05_reprobado ______________________________
+
+    def test_CD05_reprobado():
+        # D3 = F, D4 = F, D5 = V
+        result = process_grades([{'name': 'Marta', 'grades': [40, 40, 40]}])
+        assert result['failed'] == ['Marta']
+        assert result['passed'] == []
+>       assert result['overall_average'] == 40      # RF5
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert 0 == 40
+
+test_process_grade.py:71: AssertionError
+__________________________ test_CC03_camino_aprobado ___________________________
+
+    def test_CC03_camino_aprobado():
+        # P3: None(F) -> >70(V) -> counter>0(V)
+        r = process_grades([{'name': 'A', 'grades': [100, 80]}])
+>       assert r == {'passed': ['A'], 'failed': [], 'overall_average': 90}
+E       AssertionError: assert {'passed': ['...l_average': 0} == {'passed': ['..._average': 90}
+E         
+E         Omitting 2 identical items, use -vv to show
+E         Differing items:
+E         {'overall_average': 0} != {'overall_average': 90}
+E         
+E         Full diff:
+E           {...
+E         
+E         ...Full output truncated (8 lines hidden), use '-vv' to show
+
+test_process_grade.py:91: AssertionError
+________________________ test_CC04_camino_recuperacion _________________________
+
+    def test_CC04_camino_recuperacion():
+        # P4: None(F) -> >70(F) -> >=50(V) -> counter>0(V)
+        r = process_grades([{'name': 'L', 'grades': [55, 65]}])
+>       assert r == {'passed': [], 'failed': [], 'overall_average': 60}
+E       AssertionError: assert {'passed': []...l_average': 0} == {'passed': []..._average': 60}
+E         
+E         Omitting 2 identical items, use -vv to show
+E         Differing items:
+E         {'overall_average': 0} != {'overall_average': 60}
+E         
+E         Full diff:
+E           {...
+E         
+E         ...Full output truncated (6 lines hidden), use '-vv' to show
+
+test_process_grade.py:97: AssertionError
+----------------------------- Captured stdout call -----------------------------
+L is in recovery
+__________________________ test_CC05_camino_reprobado __________________________
+
+    def test_CC05_camino_reprobado():
+        # P5: None(F) -> >70(F) -> >=50(F) -> counter>0(V)
+        r = process_grades([{'name': 'M', 'grades': [20, 30]}])
+>       assert r == {'passed': [], 'failed': ['M'], 'overall_average': 25}
+E       AssertionError: assert {'passed': []...l_average': 0} == {'passed': []..._average': 25}
+E         
+E         Omitting 2 identical items, use -vv to show
+E         Differing items:
+E         {'overall_average': 0} != {'overall_average': 25}
+E         
+E         Full diff:
+E           {...
+E         
+E         ...Full output truncated (9 lines hidden), use '-vv' to show
+
+test_process_grade.py:103: AssertionError
+_________________________ test_CC06_limite_promedio_70 _________________________
+
+    def test_CC06_limite_promedio_70():
+        # Límite: RF3 dice >= 70 -> aprobado
+        r = process_grades([{'name': 'Luis', 'grades': [70, 70, 70]}])
+>       assert r['passed'] == ['Luis']
+E       AssertionError: assert [] == ['Luis']
+E         
+E         Right contains one more item: 'Luis'
+E         
+E         Full diff:
+E         + []
+E         - [
+E         -     'Luis',
+E         - ]
+
+test_process_grade.py:109: AssertionError
+----------------------------- Captured stdout call -----------------------------
+Luis is in recovery
+________________________ test_CC09_lista_de_notas_vacia ________________________
+
+capsys = <_pytest.capture.CaptureFixture object at 0x7871ce4dc9d0>
+
+    def test_CC09_lista_de_notas_vacia(capsys):
+        # Caso excepcional: RF4 -> mensaje y omitir, NO debe tronar
+>       r = process_grades([{'name': 'Jorge', 'grades': []}])
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+test_process_grade.py:126: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+students = [{'name': 'Jorge', 'grades': []}]
+
+    def process_grades(students):
+        passed = []
+        failed = []
+        overall_average = 0
+        total_grades = 0
+        counter = 0
+    
+        for student in students:
+            name = student['name']
+            grades = student['grades']
+    
+            if grades == None:
+                print(f"Student {name} has no grades")
+                continue
+    
+>           average = sum(grades) / len(grades)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           ZeroDivisionError: division by zero
+
+process_grades.py:16: ZeroDivisionError
+___________________________ test_CC10_datos_del_main ___________________________
+
+    def test_CC10_datos_del_main():
+        # Los datos originales del programa
+        students = [
+            {'name': 'Ana', 'grades': [80, 90, 85]},
+            {'name': 'Luis', 'grades': [70, 70, 70]},
+            {'name': 'Jorge', 'grades': []},
+            {'name': 'Marta', 'grades': [40, 45, 50]},
+        ]
+>       r = process_grades(students)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+
+test_process_grade.py:139: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+students = [{'name': 'Ana', 'grades': [80, 90, 85]}, {'name': 'Luis', 'grades': [70, 70, 70]}, {'name': 'Jorge', 'grades': []}, {'name': 'Marta', 'grades': [40, 45, 50]}]
+
+    def process_grades(students):
+        passed = []
+        failed = []
+        overall_average = 0
+        total_grades = 0
+        counter = 0
+    
+        for student in students:
+            name = student['name']
+            grades = student['grades']
+    
+            if grades == None:
+                print(f"Student {name} has no grades")
+                continue
+    
+>           average = sum(grades) / len(grades)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           ZeroDivisionError: division by zero
+
+process_grades.py:16: ZeroDivisionError
+----------------------------- Captured stdout call -----------------------------
+Luis is in recovery
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.14.2-final-0 ________________
+
+Name                Stmts   Miss Branch BrPart  Cover   Missing
+---------------------------------------------------------------
+process_grades.py      27      5     12      2    82%   28, 38-46
+---------------------------------------------------------------
+TOTAL                  27      5     12      2    82%
+=========================== short test summary info ============================
+FAILED test_process_grade.py::test_CS01_todas_las_sentencias - assert 0 == 63.33
+FAILED test_process_grade.py::test_CD03_aprobado - assert 0 == 90
+FAILED test_process_grade.py::test_CD04_recuperacion - assert 0 == 60
+FAILED test_process_grade.py::test_CD05_reprobado - assert 0 == 40
+FAILED test_process_grade.py::test_CC03_camino_aprobado - AssertionError: ass...
+FAILED test_process_grade.py::test_CC04_camino_recuperacion - AssertionError:...
+FAILED test_process_grade.py::test_CC05_camino_reprobado - AssertionError: as...
+FAILED test_process_grade.py::test_CC06_limite_promedio_70 - AssertionError: ...
+FAILED test_process_grade.py::test_CC09_lista_de_notas_vacia - ZeroDivisionEr...
+FAILED test_process_grade.py::test_CC10_datos_del_main - ZeroDivisionError: d...
+========================= 10 failed, 6 passed in 0.11s =========================

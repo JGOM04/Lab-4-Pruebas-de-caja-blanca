@@ -1,0 +1,57 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.2, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/python/3.14.2/bin/python3
+cachedir: .pytest_cache
+rootdir: /workspaces/Lab-4-Pruebas-de-caja-blanca
+plugins: anyio-4.15.1, cov-7.1.0
+collecting ... collected 16 items / 11 deselected / 5 selected
+
+test_process_grade.py::test_CD01_lista_vacia PASSED                      [ 20%]
+test_process_grade.py::test_CD02_grades_none PASSED                      [ 40%]
+test_process_grade.py::test_CD03_aprobado FAILED                         [ 60%]
+test_process_grade.py::test_CD04_recuperacion FAILED                     [ 80%]
+test_process_grade.py::test_CD05_reprobado FAILED                        [100%]
+
+=================================== FAILURES ===================================
+______________________________ test_CD03_aprobado ______________________________
+
+    def test_CD03_aprobado():
+        # D2 = F, D3 = V, D5 = V
+        result = process_grades([{'name': 'Ana', 'grades': [90, 90, 90]}])
+        assert result['passed'] == ['Ana']
+        assert result['failed'] == []
+>       assert result['overall_average'] == 90      # RF5
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert 0 == 90
+
+test_process_grade.py:55: AssertionError
+____________________________ test_CD04_recuperacion ____________________________
+
+capsys = <_pytest.capture.CaptureFixture object at 0x7ff9cecafd90>
+
+    def test_CD04_recuperacion(capsys):
+        # D3 = F, D4 = V, D5 = V
+        result = process_grades([{'name': 'Luis', 'grades': [60, 60, 60]}])
+        assert "Luis is in recovery" in capsys.readouterr().out
+        assert result['passed'] == [] and result['failed'] == []
+>       assert result['overall_average'] == 60      # RF5
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert 0 == 60
+
+test_process_grade.py:63: AssertionError
+_____________________________ test_CD05_reprobado ______________________________
+
+    def test_CD05_reprobado():
+        # D3 = F, D4 = F, D5 = V
+        result = process_grades([{'name': 'Marta', 'grades': [40, 40, 40]}])
+        assert result['failed'] == ['Marta']
+        assert result['passed'] == []
+>       assert result['overall_average'] == 40      # RF5
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert 0 == 40
+
+test_process_grade.py:71: AssertionError
+=========================== short test summary info ============================
+FAILED test_process_grade.py::test_CD03_aprobado - assert 0 == 90
+FAILED test_process_grade.py::test_CD04_recuperacion - assert 0 == 60
+FAILED test_process_grade.py::test_CD05_reprobado - assert 0 == 40
+================== 3 failed, 2 passed, 11 deselected in 0.05s ==================

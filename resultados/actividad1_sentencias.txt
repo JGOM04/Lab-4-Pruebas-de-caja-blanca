@@ -1,0 +1,36 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.2, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/python/3.14.2/bin/python3
+cachedir: .pytest_cache
+rootdir: /workspaces/Lab-4-Pruebas-de-caja-blanca
+plugins: anyio-4.15.1, cov-7.1.0
+collecting ... collected 16 items / 15 deselected / 1 selected
+
+test_process_grade.py::test_CS01_todas_las_sentencias FAILED             [100%]
+
+=================================== FAILURES ===================================
+________________________ test_CS01_todas_las_sentencias ________________________
+
+capsys = <_pytest.capture.CaptureFixture object at 0x73794f369400>
+
+    def test_CS01_todas_las_sentencias(capsys):
+        students = [
+            {'name': 'Pedro', 'grades': None},          # sentencia print + continue
+            {'name': 'Ana',   'grades': [80, 90, 85]},  # passed.append   (prom 85)
+            {'name': 'Luis',  'grades': [60, 60, 60]},  # print recovery  (prom 60)
+            {'name': 'Marta', 'grades': [40, 45, 50]},  # failed.append   (prom 45)
+        ]
+        result = process_grades(students)
+        salida = capsys.readouterr().out
+    
+        assert "Student Pedro has no grades" in salida
+        assert "Luis is in recovery" in salida
+        assert result['passed'] == ['Ana']
+        assert result['failed'] == ['Marta']
+        # RF5: (85 + 60 + 45) / 3 = 63.33
+>       assert result['overall_average'] == 63.33
+E       assert 0 == 63.33
+
+test_process_grade.py:27: AssertionError
+=========================== short test summary info ============================
+FAILED test_process_grade.py::test_CS01_todas_las_sentencias - assert 0 == 63.33
+======================= 1 failed, 15 deselected in 0.09s =======================
